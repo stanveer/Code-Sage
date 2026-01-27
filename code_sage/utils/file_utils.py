@@ -3,7 +3,7 @@
 import os
 import fnmatch
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Tuple
 from code_sage.core.exceptions import FileAccessError
 
 
@@ -289,7 +289,7 @@ def get_file_lines(file_path: Path, start: int = 1, end: Optional[int] = None) -
     return lines[start - 1 : end]
 
 
-def count_lines(file_path: Path) -> tuple[int, int, int]:
+def count_lines(file_path: Path) -> Tuple[int, int, int]:
     """
     Count lines in a file.
 
