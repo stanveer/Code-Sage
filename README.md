@@ -20,13 +20,14 @@
 
 ## 🌟 Overview
 
-Code Sage is a **production-ready**, AI-powered static code analyzer built with Python. It combines traditional AST-based analysis with cutting-edge AI (GPT-4/Claude) to provide intelligent code review, security scanning, and automated fixes.
+Code Sage is a **production-ready** static code analyzer built with Python that **works immediately with no configuration**. It combines traditional AST-based analysis with optional AI (GPT-4/Claude) to provide intelligent code review, security scanning, and automated fixes.
 
 ### Why Code Sage?
 
-- ✅ **Comprehensive**: Multi-language support, security scanning, AI analysis in one tool
+- ✅ **No Setup Required**: Works instantly - no API keys, no configuration needed
+- ✅ **Comprehensive**: Multi-language support, security scanning, optional AI in one tool
 - ✅ **Production Ready**: Fully tested, type-hinted, well-documented code
-- ✅ **Privacy First**: Runs locally, only uses AI when you want it
+- ✅ **Privacy First**: Runs 100% locally, AI is optional and only used if you enable it
 - ✅ **Developer Friendly**: Beautiful CLI, rich output, easy configuration
 - ✅ **Extensible**: Plugin architecture, custom rules, multiple output formats
 
@@ -46,11 +47,12 @@ Code Sage is a **production-ready**, AI-powered static code analyzer built with 
 - 📦 **Dependency CVEs**: Checks npm and pip packages
 - 🔐 **Language-Specific**: Pickle, eval, dangerous functions
 
-### AI Integration
-- 🤖 **GPT-4 & Claude**: Context-aware analysis
+### AI Integration (Optional)
+- 🤖 **GPT-4 & Claude**: Context-aware analysis (optional)
 - 💬 **Explanations**: Plain English issue descriptions
 - 🔧 **Auto-Fix**: AI-suggested code fixes
 - 🎯 **Smart**: Focuses on critical issues first
+- ⚡ **Works Without AI**: Full analysis capabilities without API keys
 
 ### Professional CLI
 - 🎨 **Beautiful UI**: Rich console with colors and tables
@@ -73,37 +75,55 @@ pip install -e .
 
 ### System Requirements
 
-- Python 3.8+
-- Optional: OpenAI API key or Anthropic API key for AI features
+- **Python 3.8+** (required)
+- **API Key** (optional, only for AI features):
+  - OpenAI API key **OR**
+  - Anthropic API key
+  
+**Note**: Works perfectly without any API keys!
 
 ---
 
 ## 📖 Quick Start
 
-### 1. Analyze a Project
+### 1. Analyze a Local Project (No Setup Required)
 
 ```bash
 code-sage analyze myproject/
 ```
 
-### 2. Analyze a GitHub Repo
+This works immediately with **no configuration** - finds bugs, code smells, and security issues!
+
+### 2. Analyze a GitHub Repository
 
 ```bash
 code-sage github https://github.com/username/repo
 ```
 
-### 3. With AI Analysis
+Code Sage will clone and analyze any public repository automatically.
+
+### 3. Generate Beautiful Reports
 
 ```bash
+code-sage analyze myproject/ --output report.html --format html
+```
+
+### 4. Optional: Enable AI-Powered Insights
+
+AI features are **completely optional** but provide enhanced explanations and fix suggestions.
+
+```bash
+# Set your API key (one-time setup)
 export OPENAI_API_KEY="sk-..."
+
+# Or for Claude
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Run with AI enabled
 code-sage analyze myproject/ --ai
 ```
 
-### 4. Generate HTML Report
-
-```bash
-code-sage analyze myproject/ --output report.html
-```
+**Note**: The tool works perfectly without AI - AI just adds extra explanations and suggestions!
 
 ---
 
@@ -135,17 +155,29 @@ code-sage analyze . --security
 code-sage analyze . --security --no-ai
 ```
 
-### AI-Powered Analysis
+### AI-Powered Analysis (Optional)
+
+**AI features are completely optional!** Code Sage performs full analysis without any API keys.
 
 ```bash
-# Use OpenAI GPT-4
+# Default: Works without AI (no setup needed)
+code-sage analyze .
+
+# Skip AI explicitly (faster)
+code-sage analyze . --no-ai
+
+# Enable AI with OpenAI GPT-4 (requires API key)
 export OPENAI_API_KEY="sk-..."
 code-sage analyze . --ai
 
-# Use Anthropic Claude
+# Or use Anthropic Claude (requires API key)
 export ANTHROPIC_API_KEY="sk-ant-..."
 code-sage analyze . --ai --config claude-config.yaml
 ```
+
+**Get API Keys (Optional):**
+- OpenAI: https://platform.openai.com/api-keys
+- Anthropic: https://console.anthropic.com/account/keys
 
 ### Configuration
 
@@ -158,6 +190,76 @@ code-sage analyze . --config myconfig.yaml
 
 # Verbose output
 code-sage analyze . --verbose
+```
+
+---
+
+## 🤖 AI Features (Optional)
+
+### Do I Need AI?
+
+**No!** Code Sage is fully functional without AI:
+- ✅ Finds all bugs, code smells, and security issues
+- ✅ Calculates code metrics
+- ✅ Generates reports
+- ✅ Works 100% locally
+
+### What Does AI Add?
+
+AI provides **enhanced insights**:
+- 💬 Plain English explanations of why issues matter
+- 🔧 Intelligent fix suggestions with code examples
+- 🎯 Context-aware recommendations
+- 📚 Learning resources and best practices
+
+### Setting Up AI (Optional)
+
+#### Option 1: Environment Variables (Easiest)
+
+```bash
+# For OpenAI (GPT-4)
+export OPENAI_API_KEY="sk-proj-..."
+
+# For Anthropic (Claude)
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Then use with --ai flag
+code-sage analyze . --ai
+```
+
+#### Option 2: Configuration File
+
+Create `.codesage.yaml`:
+
+```yaml
+ai:
+  enabled: true
+  provider: openai  # or 'anthropic'
+  openai_api_key: ${OPENAI_API_KEY}  # reads from environment
+  openai_model: gpt-4-turbo-preview
+  temperature: 0.3
+```
+
+Then just run:
+
+```bash
+code-sage analyze .  # AI automatically enabled
+```
+
+#### Getting API Keys
+
+- **OpenAI**: https://platform.openai.com/api-keys (~$0.03/analysis)
+- **Anthropic**: https://console.anthropic.com/account/keys (~$0.02/analysis)
+
+#### Disable AI
+
+```bash
+# Explicitly disable (faster, free)
+code-sage analyze . --no-ai
+
+# Or in config file
+ai:
+  enabled: false
 ```
 
 ---
