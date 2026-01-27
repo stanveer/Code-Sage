@@ -125,4 +125,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-For detailed commit history, see: https://github.com/yourusername/Code-Sage/commits/main
+For detailed commit history, see: https://github.com/stanveer/Code-Sage/commits/main

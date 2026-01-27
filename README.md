@@ -65,7 +65,7 @@ Code Sage is a **production-ready**, AI-powered static code analyzer built with 
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/Code-Sage.git
+git clone https://github.com/stanveer/Code-Sage.git
 cd Code-Sage
 pip install -r requirements.txt
 pip install -e .
@@ -444,7 +444,7 @@ MIT License - see [LICENSE](LICENSE) file
 ## 🎉 Try It Now!
 
 ```bash
-git clone https://github.com/yourusername/Code-Sage.git
+git clone https://github.com/stanveer/Code-Sage.git
 cd Code-Sage
 pip install -r requirements.txt
 pip install -e .
@@ -459,10 +459,8 @@ code-sage analyze examples/
 
 <div align="center">
 
-**Made with ❤️ by developers, for developers**
-
-[⭐ Star us on GitHub](https://github.com/yourusername/Code-Sage) •
-[🐛 Report Bug](https://github.com/yourusername/Code-Sage/issues) •
-[💡 Request Feature](https://github.com/yourusername/Code-Sage/issues)
+[⭐ Star us on GitHub](https://github.com/stanveer/Code-Sage) •
+[🐛 Report Bug](https://github.com/stanveer/Code-Sage/issues) •
+[💡 Request Feature](https://github.com/stanveer/Code-Sage/issues)
 
 </div>

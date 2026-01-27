@@ -56,7 +56,7 @@ class ReportGenerator:
                         "driver": {
                             "name": "Code Sage",
                             "version": "1.0.0",
-                            "informationUri": "https://github.com/yourusername/Code-Sage",
+                            "informationUri": "https://github.com/stanveer/Code-Sage",
                         }
                     },
                     "results": self._convert_to_sarif_results(result),

@@ -5,7 +5,7 @@ Thank you for your interest in contributing to Code Sage! This document provides
 ## Getting Started
 
 1. **Fork the repository**
-2. **Clone your fork**: `git clone https://github.com/yourusername/Code-Sage.git`
+2. **Clone your fork**: `git clone https://github.com/stanveer/Code-Sage.git`
 3. **Create a branch**: `git checkout -b feature/your-feature-name`
 4. **Install dependencies**: `pip install -r requirements.txt`
 5. **Make your changes**

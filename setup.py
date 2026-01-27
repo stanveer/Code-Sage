@@ -14,7 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     author="Code Sage Team",
     author_email="team@codesage.dev",
-    url="https://github.com/yourusername/Code-Sage",
+    url="https://github.com/stanveer/Code-Sage",
     packages=find_packages(exclude=["tests", "tests.*"]),
     include_package_data=True,
     python_requires=">=3.8",
