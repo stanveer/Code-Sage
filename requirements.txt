@@ -1,0 +1,50 @@
+# Core dependencies
+click>=8.1.0
+rich>=13.7.0
+pyyaml>=6.0.1
+toml>=0.10.2
+
+# Code parsing and analysis
+astroid>=3.0.0
+esprima>=4.0.1
+tree-sitter>=0.20.4
+tree-sitter-python>=0.20.4
+tree-sitter-javascript>=0.20.3
+radon>=6.0.1
+
+# Security
+bandit>=1.7.5
+safety>=3.0.0
+
+# AI providers
+openai>=1.10.0
+anthropic>=0.18.0
+
+# Git integration
+GitPython>=3.1.41
+PyGithub>=2.1.1
+
+# Reporting
+jinja2>=3.1.3
+plotly>=5.18.0
+kaleido>=0.2.1
+weasyprint>=60.2
+
+# CLI enhancements
+colorama>=0.4.6
+prompt-toolkit>=3.0.43
+
+# Utilities
+requests>=2.31.0
+python-dotenv>=1.0.1
+typing-extensions>=4.9.0
+
+# Development
+pytest>=8.0.0
+pytest-cov>=4.1.0
+pytest-mock>=3.12.0
+black>=24.1.0
+isort>=5.13.2
+flake8>=7.0.0
+mypy>=1.8.0
+tox>=4.12.0
