@@ -1,0 +1,88 @@
+# Code Sage Configuration Example
+
+ai:
+  enabled: true
+  provider: openai  # openai or anthropic
+  openai_api_key: ${OPENAI_API_KEY}
+  anthropic_api_key: ${ANTHROPIC_API_KEY}
+  openai_model: gpt-4-turbo-preview
+  temperature: 0.3
+  max_tokens: 2000
+
+analysis:
+  enabled_languages:
+    - python
+    - javascript
+    - typescript
+    - java
+    - go
+  enabled_categories:
+    - security
+    - bug
+    - code_smell
+    - type_error
+    - performance
+    - best_practice
+  min_severity: info
+  max_complexity: 15
+  max_function_length: 50
+  enable_type_checking: true
+  enable_security_scan: true
+  enable_metrics: true
+  parallel_analysis: true
+  max_workers: 4
+
+security:
+  enable_secrets_scan: true
+  enable_dependency_scan: true
+  enable_owasp_scan: true
+  check_cve_database: true
+  min_entropy_threshold: 4.5
+
+output:
+  format: rich  # rich, json, sarif, junit
+  output_dir: ./reports
+  generate_html: true
+  generate_pdf: false
+  generate_json: true
+  show_code_snippets: true
+  show_ai_explanations: true
+  verbose: false
+
+git:
+  enable_hooks: false
+  enable_pr_analysis: false
+  analyze_on_commit: false
+  analyze_on_push: false
+  block_on_critical: true
+  github_token: ${GITHUB_TOKEN}
+
+cache:
+  enabled: true
+  cache_dir: ./.code-sage-cache
+  ttl_seconds: 3600
+  max_size_mb: 500
+
+ignore_patterns:
+  - node_modules/*
+  - venv/*
+  - env/*
+  - .git/*
+  - "*.min.js"
+  - "*.bundle.js"
+  - build/*
+  - dist/*
+  - "*.pyc"
+  - __pycache__/*
+
+include_patterns:
+  - "*.py"
+  - "*.js"
+  - "*.ts"
+  - "*.jsx"
+  - "*.tsx"
+  - "*.java"
+  - "*.go"
+  - "*.rb"
+  - "*.php"
+  - "*.rs"
