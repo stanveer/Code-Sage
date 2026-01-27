@@ -49,7 +49,7 @@ def cli(ctx: click.Context, config: str, verbose: bool, debug: bool) -> None:
 @click.option("--output", "-o", type=click.Path(), help="Output file for report")
 @click.option("--format", "-f", type=click.Choice(["rich", "json", "sarif", "junit"]), default="rich", help="Output format")
 @click.option("--severity", "-s", type=click.Choice(["info", "low", "medium", "high", "critical"]), help="Minimum severity level")
-@click.option("--ai/--no-ai", default=True, help="Enable AI-powered analysis")
+@click.option("--ai/--no-ai", default=False, help="Enable AI-powered analysis (requires API key)")
 @click.option("--security/--no-security", default=True, help="Enable security scanning")
 @click.option("--fix", is_flag=True, help="Auto-fix issues where possible")
 @click.pass_context
@@ -104,7 +104,10 @@ def analyze(ctx: click.Context, path: str, output: str, format: str, severity: s
             progress.update(task, completed=True)
     
     # AI enrichment
-    if ai and config.ai.enabled:
+    if ai:
+        # Enable AI in config if requested via CLI
+        config.ai.enabled = True
+        
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -112,11 +115,19 @@ def analyze(ctx: click.Context, path: str, output: str, format: str, severity: s
         ) as progress:
             task = progress.add_task("AI analysis...", total=None)
             
-            enrichment = AIEnrichment(config)
-            all_issues = result.get_all_issues()
-            enriched_issues = enrichment.enrich_issues(all_issues, max_issues=10)
-            
-            progress.update(task, completed=True)
+            try:
+                enrichment = AIEnrichment(config)
+                if enrichment.provider:
+                    all_issues = result.get_all_issues()
+                    enriched_issues = enrichment.enrich_issues(all_issues, max_issues=10)
+                    progress.update(task, completed=True)
+                else:
+                    progress.update(task, completed=True)
+                    console.print("[yellow]⚠️  AI analysis skipped: No API key configured[/yellow]")
+                    console.print("[dim]Tip: Set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable[/dim]")
+            except Exception as e:
+                progress.update(task, completed=True)
+                console.print(f"[yellow]⚠️  AI analysis failed: {e}[/yellow]")
     
     # Filter by severity
     if severity:
@@ -151,8 +162,10 @@ def analyze(ctx: click.Context, path: str, output: str, format: str, severity: s
 @click.argument("url")
 @click.option("--branch", "-b", default="main", help="Git branch to analyze")
 @click.option("--output", "-o", type=click.Path(), help="Output directory")
+@click.option("--ai/--no-ai", default=False, help="Enable AI-powered analysis (requires API key)")
+@click.option("--security/--no-security", default=True, help="Enable security scanning")
 @click.pass_context
-def github(ctx: click.Context, url: str, branch: str, output: str) -> None:
+def github(ctx: click.Context, url: str, branch: str, output: str, ai: bool, security: bool) -> None:
     """Analyze a GitHub repository."""
     import tempfile
     import shutil
@@ -168,8 +181,8 @@ def github(ctx: click.Context, url: str, branch: str, output: str) -> None:
             Repo.clone_from(url, tmpdir, branch=branch, depth=1)
             console.print("[green]✓[/green] Repository cloned")
             
-            # Analyze
-            ctx.invoke(analyze, path=tmpdir, output=output)
+            # Analyze (pass through ai and security flags)
+            ctx.invoke(analyze, path=tmpdir, output=output, ai=ai, security=security, format="rich", severity=None, fix=False)
             
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")

@@ -20,7 +20,7 @@ class AIConfig:
     temperature: float = 0.3
     max_tokens: int = 2000
     timeout: int = 30
-    enabled: bool = True
+    enabled: bool = False  # AI is opt-in, not opt-out
 
 
 @dataclass
@@ -261,12 +261,13 @@ class Config:
         """Validate configuration and return list of errors."""
         errors = []
 
-        # Validate AI configuration
-        if self.ai.enabled:
-            if self.ai.provider == "openai" and not self.ai.openai_api_key:
-                errors.append("OpenAI API key is required when using OpenAI provider")
-            if self.ai.provider == "anthropic" and not self.ai.anthropic_api_key:
-                errors.append("Anthropic API key is required when using Anthropic provider")
+        # Validate AI configuration (now just warnings, not errors)
+        # The tool will work without AI, so missing keys are not critical
+        # if self.ai.enabled:
+        #     if self.ai.provider == "openai" and not self.ai.openai_api_key:
+        #         errors.append("Warning: OpenAI API key not set (AI features will be disabled)")
+        #     if self.ai.provider == "anthropic" and not self.ai.anthropic_api_key:
+        #         errors.append("Warning: Anthropic API key not set (AI features will be disabled)")
 
         # Validate severity level
         valid_severities = ["info", "low", "medium", "high", "critical"]

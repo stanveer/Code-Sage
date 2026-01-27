@@ -365,14 +365,19 @@ def get_ai_provider(config: AIConfig) -> Optional[AIProvider]:
         config: AI configuration
 
     Returns:
-        AIProvider instance or None if not enabled
+        AIProvider instance or None if not enabled/configured
     """
     if not config.enabled:
         return None
 
-    if config.provider == "openai":
-        return OpenAIProvider(config)
-    elif config.provider == "anthropic":
-        return ClaudeProvider(config)
-    else:
-        raise AIProviderError(f"Unknown AI provider: {config.provider}")
+    try:
+        if config.provider == "openai":
+            return OpenAIProvider(config)
+        elif config.provider == "anthropic":
+            return ClaudeProvider(config)
+        else:
+            raise AIProviderError(f"Unknown AI provider: {config.provider}")
+    except AIProviderError as e:
+        # Return None if provider can't be initialized (e.g., missing API key)
+        # The caller can check for None and skip AI features gracefully
+        return None
