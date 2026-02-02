@@ -7,7 +7,7 @@ suggests or automatically applies fixes.
 """
 
 __version__ = "1.0.0"
-__author__ = "Code Sage Team"
+__author__ = "Suhaib Tanveer"
 __license__ = "MIT"
 
 from code_sage.core.models import Issue, IssueSeverity, IssueCategory, AnalysisResult

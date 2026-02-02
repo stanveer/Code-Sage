@@ -11,7 +11,7 @@ requires-python = ">=3.8"
 license = {text = "MIT"}
 keywords = ["code analysis", "static analysis", "linting", "security", "ai"]
 authors = [
-    {name = "Code Sage Team", email = "team@codesage.dev"}
+    {name = "Suhaib Tanveer", email = "suhaibtanveer@gmail.com"}
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
