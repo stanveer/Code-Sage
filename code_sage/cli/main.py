@@ -44,6 +44,79 @@ def cli(ctx: click.Context, config: str, verbose: bool, debug: bool) -> None:
     }
 
 
+def _run_code_analysis(engine: AnalysisEngine, path_obj: Path) -> 'AnalysisResult':
+    """Run code analysis with progress indicator."""
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Analyzing files...", total=None)
+        result = engine.analyze_path(path_obj)
+        progress.update(task, completed=True)
+    return result
+
+
+def _run_security_scan(result: 'AnalysisResult', config: Config, path_obj: Path) -> None:
+    """Run security scanning with progress indicator."""
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Running security scan...", total=None)
+        
+        scanner = SecurityScanner(config)
+        dep_scanner = DependencyScanner(config)
+        
+        # Scan files
+        for file_analysis in result.file_analyses:
+            security_issues = scanner.scan_file(Path(file_analysis.file_path))
+            file_analysis.issues.extend(security_issues)
+        
+        # Scan dependencies
+        dep_issues = dep_scanner.scan_dependencies(path_obj)
+        if dep_issues and result.file_analyses:
+            result.file_analyses[0].issues.extend(dep_issues)
+        
+        progress.update(task, completed=True)
+
+
+def _run_ai_enrichment(result: 'AnalysisResult', config: Config) -> None:
+    """Run AI enrichment with progress indicator and error handling."""
+    config.ai.enabled = True
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        task = progress.add_task("AI analysis...", total=None)
+        
+        try:
+            enrichment = AIEnrichment(config)
+            if enrichment.provider:
+                all_issues = result.get_all_issues()
+                enrichment.enrich_issues(all_issues, max_issues=10)
+            else:
+                console.print("[yellow]⚠️  AI analysis skipped: No API key configured[/yellow]")
+                console.print("[dim]Tip: Set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable[/dim]")
+        except Exception as e:
+            console.print(f"[yellow]⚠️  AI analysis failed: {e}[/yellow]")
+        finally:
+            progress.update(task, completed=True)
+
+
+def _filter_by_severity(result: 'AnalysisResult', severity: str) -> None:
+    """Filter analysis results by severity level."""
+    severity_enum = IssueSeverity(severity)
+    for file_analysis in result.file_analyses:
+        file_analysis.issues = [
+            issue for issue in file_analysis.issues
+            if issue.severity.value >= severity_enum.value
+        ]
+
+
 @cli.command()
 @click.argument("path", type=click.Path(exists=True))
 @click.option("--output", "-o", type=click.Path(), help="Output file for report")
@@ -58,85 +131,27 @@ def analyze(ctx: click.Context, path: str, output: str, format: str, severity: s
     config = ctx.obj["config"]
     path_obj = Path(path)
     
+    # Display header
     console.print(Panel.fit(
         f"[bold cyan]Code Sage[/bold cyan] v{__version__}\n"
         f"Analyzing: [yellow]{path}[/yellow]",
         border_style="cyan"
     ))
     
-    # Create engine
+    # Run analysis
     engine = AnalysisEngine(config)
+    result = _run_code_analysis(engine, path_obj)
     
-    # Analyze
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        task = progress.add_task("Analyzing files...", total=None)
-        
-        result = engine.analyze_path(path_obj)
-        
-        progress.update(task, completed=True)
-    
-    # Security scan
+    # Run optional scans
     if security:
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("Running security scan...", total=None)
-            
-            scanner = SecurityScanner(config)
-            dep_scanner = DependencyScanner(config)
-            
-            # Scan files
-            for file_analysis in result.file_analyses:
-                security_issues = scanner.scan_file(Path(file_analysis.file_path))
-                file_analysis.issues.extend(security_issues)
-            
-            # Scan dependencies
-            dep_issues = dep_scanner.scan_dependencies(path_obj)
-            if dep_issues and result.file_analyses:
-                result.file_analyses[0].issues.extend(dep_issues)
-            
-            progress.update(task, completed=True)
+        _run_security_scan(result, config, path_obj)
     
-    # AI enrichment
     if ai:
-        # Enable AI in config if requested via CLI
-        config.ai.enabled = True
-        
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task("AI analysis...", total=None)
-            
-            try:
-                enrichment = AIEnrichment(config)
-                if enrichment.provider:
-                    all_issues = result.get_all_issues()
-                    enriched_issues = enrichment.enrich_issues(all_issues, max_issues=10)
-                    progress.update(task, completed=True)
-                else:
-                    progress.update(task, completed=True)
-                    console.print("[yellow]⚠️  AI analysis skipped: No API key configured[/yellow]")
-                    console.print("[dim]Tip: Set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable[/dim]")
-            except Exception as e:
-                progress.update(task, completed=True)
-                console.print(f"[yellow]⚠️  AI analysis failed: {e}[/yellow]")
+        _run_ai_enrichment(result, config)
     
-    # Filter by severity
+    # Filter results
     if severity:
-        severity_enum = IssueSeverity(severity)
-        for file_analysis in result.file_analyses:
-            file_analysis.issues = [
-                issue for issue in file_analysis.issues
-                if issue.severity.value >= severity_enum.value
-            ]
+        _filter_by_severity(result, severity)
     
     # Display results
     if format == "rich":

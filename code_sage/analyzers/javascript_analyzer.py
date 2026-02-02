@@ -109,91 +109,90 @@ class JavaScriptAnalyzer(BaseAnalyzer):
         except ImportError:
             self.logger.debug("esprima not available, skipping syntax check")
 
+    def _create_issue(self, file_path: Path, line_num: int, issue_type: str, 
+                      title: str, description: str, severity: IssueSeverity,
+                      category: IssueCategory, suggested_fix: str, 
+                      auto_fixable: bool = False) -> Issue:
+        """Helper to create an issue with consistent structure."""
+        return Issue(
+            id=self._generate_issue_id(file_path, issue_type, line_num),
+            title=title,
+            description=description,
+            severity=severity,
+            category=category,
+            location=CodeLocation(
+                file_path=str(file_path),
+                line_start=line_num,
+                line_end=line_num,
+            ),
+            code_snippet=self.get_code_snippet(file_path, line_num, line_num),
+            suggested_fix=suggested_fix,
+            auto_fixable=auto_fixable,
+        )
+
+    def _check_console_log(self, file_path: Path, line: str, line_num: int) -> None:
+        """Check for console.log statements."""
+        if "console.log" in line and not line.strip().startswith("//"):
+            self.issues.append(self._create_issue(
+                file_path, line_num, "console_log",
+                "Console.log Statement",
+                "console.log statements should be removed in production code",
+                IssueSeverity.LOW, IssueCategory.BEST_PRACTICE,
+                "Remove console.log or use a proper logging library",
+                auto_fixable=True
+            ))
+
+    def _check_loose_equality(self, file_path: Path, line: str, line_num: int) -> None:
+        """Check for loose equality (==) instead of strict (===)."""
+        if " == " in line and " === " not in line and not line.strip().startswith("//"):
+            if "==" in line and "===" not in line:
+                self.issues.append(self._create_issue(
+                    file_path, line_num, "loose_equality",
+                    "Loose Equality Comparison",
+                    "Use === instead of == for comparison",
+                    IssueSeverity.MEDIUM, IssueCategory.BEST_PRACTICE,
+                    "Replace == with ===",
+                    auto_fixable=True
+                ))
+
+    def _check_var_usage(self, file_path: Path, line: str, line_num: int) -> None:
+        """Check for var declarations instead of let/const."""
+        if "var " in line and not line.strip().startswith("//"):
+            self.issues.append(self._create_issue(
+                file_path, line_num, "var_usage",
+                "Use of 'var' Keyword",
+                "Use 'let' or 'const' instead of 'var'",
+                IssueSeverity.LOW, IssueCategory.BEST_PRACTICE,
+                "Replace 'var' with 'let' or 'const'",
+                auto_fixable=True
+            ))
+
+    def _check_eval_usage(self, file_path: Path, line: str, line_num: int) -> None:
+        """Check for dangerous eval() usage."""
+        # Skip if this is pattern matching/checking code (context-aware detection)
+        if "eval(" in line and not line.strip().startswith("//"):
+            # Reduce false positives: skip if checking for eval or in string
+            if 'if "eval(' in line or "in line" in line or "'eval('" in line or '"eval("' in line:
+                return  # This is pattern matching code, not actual eval usage
+            
+            self.issues.append(self._create_issue(
+                file_path, line_num, "eval_usage",
+                "Use of eval()",
+                "eval() is dangerous and should be avoided",
+                IssueSeverity.HIGH, IssueCategory.SECURITY,
+                "Refactor to avoid eval()",
+                auto_fixable=False
+            ))
+
     def _check_common_issues(self, file_path: Path, content: str, is_typescript: bool) -> None:
         """Check for common JavaScript/TypeScript issues."""
         lines = content.splitlines()
 
         for line_num, line in enumerate(lines, start=1):
-            # Check for console.log (should be removed in production)
-            if "console.log" in line and not line.strip().startswith("//"):
-                self.issues.append(
-                    Issue(
-                        id=self._generate_issue_id(file_path, "console_log", line_num),
-                        title="Console.log Statement",
-                        description="console.log statements should be removed in production code",
-                        severity=IssueSeverity.LOW,
-                        category=IssueCategory.BEST_PRACTICE,
-                        location=CodeLocation(
-                            file_path=str(file_path),
-                            line_start=line_num,
-                            line_end=line_num,
-                        ),
-                        code_snippet=self.get_code_snippet(file_path, line_num, line_num),
-                        suggested_fix="Remove console.log or use a proper logging library",
-                        auto_fixable=True,
-                    )
-                )
-
-            # Check for == instead of ===
-            if " == " in line and " === " not in line and not line.strip().startswith("//"):
-                if "==" in line and "===" not in line:
-                    self.issues.append(
-                        Issue(
-                            id=self._generate_issue_id(file_path, "loose_equality", line_num),
-                            title="Loose Equality Comparison",
-                            description="Use === instead of == for comparison",
-                            severity=IssueSeverity.MEDIUM,
-                            category=IssueCategory.BEST_PRACTICE,
-                            location=CodeLocation(
-                                file_path=str(file_path),
-                                line_start=line_num,
-                                line_end=line_num,
-                            ),
-                            code_snippet=self.get_code_snippet(file_path, line_num, line_num),
-                            suggested_fix="Replace == with ===",
-                            auto_fixable=True,
-                        )
-                    )
-
-            # Check for var declarations
-            if "var " in line and not line.strip().startswith("//"):
-                self.issues.append(
-                    Issue(
-                        id=self._generate_issue_id(file_path, "var_usage", line_num),
-                        title="Use of 'var' Keyword",
-                        description="Use 'let' or 'const' instead of 'var'",
-                        severity=IssueSeverity.LOW,
-                        category=IssueCategory.BEST_PRACTICE,
-                        location=CodeLocation(
-                            file_path=str(file_path),
-                            line_start=line_num,
-                            line_end=line_num,
-                        ),
-                        code_snippet=self.get_code_snippet(file_path, line_num, line_num),
-                        suggested_fix="Replace 'var' with 'let' or 'const'",
-                        auto_fixable=True,
-                    )
-                )
-
-            # Check for eval()
-            if "eval(" in line and not line.strip().startswith("//"):
-                self.issues.append(
-                    Issue(
-                        id=self._generate_issue_id(file_path, "eval_usage", line_num),
-                        title="Use of eval()",
-                        description="eval() is dangerous and should be avoided",
-                        severity=IssueSeverity.HIGH,
-                        category=IssueCategory.SECURITY,
-                        location=CodeLocation(
-                            file_path=str(file_path),
-                            line_start=line_num,
-                            line_end=line_num,
-                        ),
-                        code_snippet=self.get_code_snippet(file_path, line_num, line_num),
-                        suggested_fix="Refactor to avoid eval()",
-                        auto_fixable=False,
-                    )
-                )
+            self._check_console_log(file_path, line, line_num)
+            self._check_loose_equality(file_path, line, line_num)
+            self._check_var_usage(file_path, line, line_num)
+            self._check_eval_usage(file_path, line, line_num)
 
     def _check_best_practices(self, file_path: Path, content: str) -> None:
         """Check for best practice violations."""

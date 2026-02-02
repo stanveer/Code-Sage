@@ -25,6 +25,38 @@ class AIEnrichment:
         self.logger = get_logger()
         self.provider = get_ai_provider(self.config.ai)
 
+    def _add_ai_explanation(self, issue: Issue) -> None:
+        """Add AI explanation to an issue."""
+        if not issue.ai_explanation and self.provider:
+            issue.ai_explanation = self.provider.explain_issue(
+                issue_description=issue.description,
+                code=issue.code_snippet or "",
+                language=self._infer_language(issue),
+            )
+
+    def _add_ai_fix_suggestion(self, issue: Issue) -> None:
+        """Add AI fix suggestion to an issue."""
+        if (not issue.suggested_fix and 
+            issue.severity.value in ["critical", "high", "medium"] and 
+            self.provider):
+            fix_result = self.provider.suggest_fix(
+                issue_description=issue.description,
+                code=issue.code_snippet or "",
+                language=self._infer_language(issue),
+            )
+            issue.suggested_fix = fix_result.get("fixed_code", "")
+            issue.fix_description = fix_result.get("explanation", "")
+
+    def _enrich_single_issue(self, issue: Issue) -> Issue:
+        """Enrich a single issue with AI analysis."""
+        try:
+            self._add_ai_explanation(issue)
+            self._add_ai_fix_suggestion(issue)
+            self.logger.debug(f"Enriched issue: {issue.title}")
+        except Exception as e:
+            self.logger.warning(f"Failed to enrich issue {issue.id}: {e}")
+        return issue
+
     def enrich_issues(self, issues: List[Issue], max_issues: int = 10) -> List[Issue]:
         """
         Enrich issues with AI explanations.
@@ -46,37 +78,11 @@ class AIEnrichment:
         )
         
         issues_to_enrich = sorted_issues[:max_issues]
-        enriched = []
-
         self.logger.info(f"Enriching {len(issues_to_enrich)} issues with AI")
 
-        for issue in issues_to_enrich:
-            try:
-                # Get AI explanation
-                if not issue.ai_explanation:
-                    issue.ai_explanation = self.provider.explain_issue(
-                        issue_description=issue.description,
-                        code=issue.code_snippet or "",
-                        language=self._infer_language(issue),
-                    )
-
-                # Get AI fix suggestion
-                if not issue.suggested_fix and issue.severity.value in ["critical", "high", "medium"]:
-                    fix_result = self.provider.suggest_fix(
-                        issue_description=issue.description,
-                        code=issue.code_snippet or "",
-                        language=self._infer_language(issue),
-                    )
-                    issue.suggested_fix = fix_result.get("fixed_code", "")
-                    issue.fix_description = fix_result.get("explanation", "")
-
-                enriched.append(issue)
-                self.logger.debug(f"Enriched issue: {issue.title}")
-
-            except Exception as e:
-                self.logger.warning(f"Failed to enrich issue {issue.id}: {e}")
-                enriched.append(issue)
-
+        # Enrich selected issues
+        enriched = [self._enrich_single_issue(issue) for issue in issues_to_enrich]
+        
         # Add remaining issues without enrichment
         enriched.extend(sorted_issues[max_issues:])
 
