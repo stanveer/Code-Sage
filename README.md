@@ -236,7 +236,7 @@ ai:
   enabled: true
   provider: openai  # or 'anthropic'
   openai_api_key: ${OPENAI_API_KEY}  # reads from environment
-  openai_model: gpt-4-turbo-preview
+  openai_model: gpt-4o-mini  # Options: gpt-4o, gpt-4o-mini, gpt-3.5-turbo
   temperature: 0.3
 ```
 
@@ -273,7 +273,7 @@ ai:
   enabled: true
   provider: openai  # or anthropic
   openai_api_key: ${OPENAI_API_KEY}
-  openai_model: gpt-4-turbo-preview
+  openai_model: gpt-4o-mini  # Options: gpt-4o, gpt-4o-mini, gpt-3.5-turbo
   temperature: 0.3
 
 analysis:

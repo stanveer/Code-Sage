@@ -15,8 +15,8 @@ class AIConfig:
     provider: str = "openai"  # openai, anthropic, or both
     openai_api_key: Optional[str] = None
     anthropic_api_key: Optional[str] = None
-    openai_model: str = "gpt-4-turbo-preview"
-    anthropic_model: str = "claude-3-opus-20240229"
+    openai_model: str = "gpt-4o-mini"  # Affordable and fast GPT-4 model
+    anthropic_model: str = "claude-3-5-sonnet-20241022"  # Latest Claude model
     temperature: float = 0.3
     max_tokens: int = 2000
     timeout: int = 30
