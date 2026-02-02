@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "code-sage"
+name = "code-sage-ai"
 version = "1.0.0"
 description = "AI-powered code analyzer that finds bugs, suggests improvements, and fixes issues"
 readme = "README.md"
