@@ -176,11 +176,13 @@ def analyze(ctx: click.Context, path: str, output: str, format: str, severity: s
 @cli.command()
 @click.argument("url")
 @click.option("--branch", "-b", default="main", help="Git branch to analyze")
-@click.option("--output", "-o", type=click.Path(), help="Output directory")
+@click.option("--output", "-o", type=click.Path(), help="Output file for report")
+@click.option("--format", "-f", type=click.Choice(["rich", "json", "sarif", "junit"]), default="rich", help="Output format")
+@click.option("--severity", "-s", type=click.Choice(["info", "low", "medium", "high", "critical"]), help="Minimum severity level")
 @click.option("--ai/--no-ai", default=False, help="Enable AI-powered analysis (requires API key)")
 @click.option("--security/--no-security", default=True, help="Enable security scanning")
 @click.pass_context
-def github(ctx: click.Context, url: str, branch: str, output: str, ai: bool, security: bool) -> None:
+def github(ctx: click.Context, url: str, branch: str, output: str, format: str, severity: str, ai: bool, security: bool) -> None:
     """Analyze a GitHub repository."""
     import tempfile
     import shutil
@@ -196,8 +198,8 @@ def github(ctx: click.Context, url: str, branch: str, output: str, ai: bool, sec
             Repo.clone_from(url, tmpdir, branch=branch, depth=1)
             console.print("[green]✓[/green] Repository cloned")
             
-            # Analyze (pass through ai and security flags)
-            ctx.invoke(analyze, path=tmpdir, output=output, ai=ai, security=security, format="rich", severity=None, fix=False)
+            # Analyze with all options
+            ctx.invoke(analyze, path=tmpdir, output=output, format=format, severity=severity, ai=ai, security=security, fix=False)
             
         except Exception as e:
             console.print(f"[red]Error:[/red] {e}")
